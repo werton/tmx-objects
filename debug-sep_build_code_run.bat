@@ -1,0 +1,1 @@
+call "%~dp0build.bat" code debug -j run %*
