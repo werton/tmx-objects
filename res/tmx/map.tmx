@@ -33,7 +33,7 @@
 </data>
  </layer>
  <objectgroup id="2" name="ActorLayer">
-  <object id="1" name="Sonic" type="TiledPlayer" x="156" y="184" width="10" height="10">
+  <object id="1" name="Sonic" type="TiledPlayer" x="160" y="164" width="10" height="10">
    <properties>
     <property name="damage" type="int" value="10"/>
     <property name="enabled" type="bool" value="false"/>
@@ -43,56 +43,60 @@
     <property name="hp" type="int" value="100"/>
     <property name="id" type="int" value="1"/>
     <property name="pal" type="int" value="0"/>
+    <property name="phrase" value="I am the fastest hedgehog in the world!"/>
     <property name="priority" type="bool" value="true"/>
     <property name="speed" type="float" value="1.5"/>
-    <property name="target" type="object" value="0"/>
+    <property name="target" type="object" value="4"/>
     <property name="type" type="int" value="1"/>
    </properties>
   </object>
-  <object id="2" name="Crab" type="TiledEnemy" x="34" y="88" width="10" height="10">
+  <object id="2" name="Buzz Bomber" type="TiledEnemy" x="46" y="124" width="10" height="10">
    <properties>
     <property name="damage" type="int" value="10"/>
     <property name="enabled" type="bool" value="false"/>
     <property name="exportName" type="bool" value="true"/>
     <property name="exportPosition" type="bool" value="true"/>
-    <property name="flipH" type="bool" value="false"/>
-    <property name="hp" type="int" value="100"/>
+    <property name="flipH" type="bool" value="true"/>
+    <property name="hp" type="int" value="30"/>
     <property name="id" type="int" value="2"/>
-    <property name="pal" type="int" value="3"/>
+    <property name="pal" type="int" value="1"/>
+    <property name="phrase" value="I'm like a Buzz Lightyear, only better"/>
     <property name="priority" type="bool" value="false"/>
-    <property name="speed" type="float" value="0"/>
+    <property name="speed" type="float" value="10.51"/>
     <property name="target" type="object" value="1"/>
     <property name="type" type="int" value="1"/>
    </properties>
   </object>
-  <object id="3" name="Crab" type="TiledEnemy" x="154" y="24" width="10" height="10">
+  <object id="3" name="Crabmeat" type="TiledEnemy" x="180" y="42" width="10" height="10">
    <properties>
     <property name="damage" type="int" value="10"/>
     <property name="enabled" type="bool" value="false"/>
     <property name="exportName" type="bool" value="true"/>
     <property name="exportPosition" type="bool" value="true"/>
     <property name="flipH" type="bool" value="false"/>
-    <property name="hp" type="int" value="100"/>
+    <property name="hp" type="int" value="45"/>
     <property name="id" type="int" value="3"/>
     <property name="pal" type="int" value="2"/>
-    <property name="priority" type="bool" value="false"/>
-    <property name="speed" type="float" value="0"/>
+    <property name="phrase" value="SpooongeBooooob!!!"/>
+    <property name="priority" type="bool" value="true"/>
+    <property name="speed" type="float" value="43.46"/>
     <property name="target" type="object" value="2"/>
     <property name="type" type="int" value="1"/>
    </properties>
   </object>
-  <object id="4" name="Crab" type="TiledEnemy" x="266" y="76" width="10" height="10">
+  <object id="4" name="Burrobot" type="TiledEnemy" x="276" y="132" width="10" height="10">
    <properties>
     <property name="damage" type="int" value="10"/>
     <property name="enabled" type="bool" value="false"/>
     <property name="exportName" type="bool" value="true"/>
     <property name="exportPosition" type="bool" value="true"/>
     <property name="flipH" type="bool" value="false"/>
-    <property name="hp" type="int" value="100"/>
+    <property name="hp" type="int" value="60"/>
     <property name="id" type="int" value="4"/>
-    <property name="pal" type="int" value="1"/>
+    <property name="pal" type="int" value="3"/>
+    <property name="phrase" value="Blast-Processing is so much faster than sonic that no one can see it!"/>
     <property name="priority" type="bool" value="false"/>
-    <property name="speed" type="float" value="0"/>
+    <property name="speed" type="float" value="23.12"/>
     <property name="target" type="object" value="3"/>
     <property name="type" type="int" value="1"/>
    </properties>
