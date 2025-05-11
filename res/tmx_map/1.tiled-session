@@ -8,7 +8,7 @@
     "openFiles": [
     ],
     "project": "1.tiled-project",
-    "property.type": "int",
+    "property.type": "ObjectType",
     "recentFiles": [
     ]
 }

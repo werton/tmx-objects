@@ -12,5 +12,17 @@
             "DEF_DISPLAY"
         ],
         "valuesAsFlags": false
+    },
+    {
+        "id": 2,
+        "name": "ObjectType",
+        "storageType": "int",
+        "type": "enum",
+        "values": [
+            "TypePlayer",
+            "TypeEnemy",
+            "TypeItem"
+        ],
+        "valuesAsFlags": false
     }
 ]

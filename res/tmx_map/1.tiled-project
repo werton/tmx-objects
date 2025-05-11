@@ -11,8 +11,21 @@
     ],
     "propertyTypes": [
         {
+            "id": 2,
+            "name": "ObjectType",
+            "storageType": "int",
+            "type": "enum",
+            "values": [
+                "TYPE_PLAYER",
+                "TYPE_ENEMY",
+                "TYPE_ITEM",
+                "TYPE_COUNT"
+            ],
+            "valuesAsFlags": false
+        },
+        {
             "id": 1,
-            "name": "spriteDefEnum",
+            "name": "SpriteDefEnum",
             "storageType": "int",
             "type": "enum",
             "values": [
@@ -20,7 +33,8 @@
                 "DEF_BUZZ",
                 "DEF_CRAB",
                 "DEF_BOT",
-                "DEF_DISPLAY"
+                "DEF_DISPLAY",
+                "DEF_COUNT"
             ],
             "valuesAsFlags": false
         }
