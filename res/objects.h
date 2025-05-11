@@ -5,5 +5,6 @@
 
 extern const ActorData* playersData[1];
 extern const ActorData* enemiesData[3];
+extern const TextData* textData[1];
 
 #endif // _RES_OBJECTS_H_

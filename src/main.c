@@ -1,75 +1,96 @@
 #include <genesis.h>
 #include "sprites.h"
 
+
 typedef struct
 {
-    char *name;
-    f32 x;
-    f32 y;
-    char *phrase;
-    f32 speed;
-    u16 id;
-    u16 hp;
-    u16 type;
-    u8 pal;
-    bool priority;
-    bool flipH;
+    char *name;         // Display name
+    char *text;         // Display name
+    
+} TextData;
+
+// Contains all data properties for game actors
+typedef struct
+{
+    char *name;         // Display name
+    f32 x;              // X position (fixed point)
+    f32 y;              // Y position (fixed point)
+    char *phrase;       // Dialogue text
+    f32 speed;          // Movement speed
+    u16 id;             // Unique ID
+    s16 hp;             // Hit points
+    u16 type;           // Actor type
+    u8 pal;             // Palette index
+    bool priority;      // Render priority
+    bool flipH;         // Horizontal flip
+    Object target;         // Horizontal flip
 } ActorData;
 
+// Base game object with sprite and data
 typedef struct
 {
-    Sprite *sprite;
     union
     {
-        ActorData;
-        ActorData data;
+        ActorData data; // Named access
+        ActorData;      // Anonymous access
     };
-    
+    Sprite *sprite;     // Sprite reference
 } GameObject;
 
+// Player-specific object
 typedef struct
 {
-    GameObject;
+    GameObject;         // Inherits GameObject
 } Player;
 
+// Enemy-specific object
 typedef struct
 {
-    GameObject;
+    GameObject;         // Inherits GameObject
 } Enemy;
 
 #include "objects.h"
 
-#define ENEMY_COUNT  (sizeof(enemiesData)/sizeof(enemiesData[0]))
+// Constants
+#define ENEMY_COUNT (sizeof(enemiesData)/sizeof(enemiesData[0]))
+#define STAT_LINES 20
+#define TEXT_BUFFER 40
+#define UI_PALETTE PAL1
+#define TEXT_PALETTE PAL3
 
-Player player;
-Enemy enemies[3];
-u16 objectIndex;
+// Game state
+static Player player;
+static Enemy enemies[ENEMY_COUNT];
+static u16 currentEnemyIndex = 0;
 
-const SpriteDefinition *enemySprDefs[ENEMY_COUNT] = {&sprDefEnemy01, &sprDefEnemy02, &sprDefEnemy03};
+// Sprite definitions
+static const SpriteDefinition *enemySprDefs[ENEMY_COUNT] = {
+    &sprDefEnemy01,
+    &sprDefEnemy02,
+    &sprDefEnemy03
+};
 
-void GameInit();
+// Forward declarations
+static void Game_Init();
 
-void Player_Create();
+static void Joy_Handler(u16 joy, u16 changed, u16 state);
 
+static void GameObject_Init(GameObject *obj, const ActorData *data, const SpriteDefinition *sprDef);
 
-void Joy_EventHandler(u16 joy, u16 changed, u16 state);
+static void UI_DrawStats(const ActorData *actor);
 
-void GameObject_Create(GameObject *gameObject, const ActorData *charData, const SpriteDefinition *sprDef);
+static void UI_DrawMarker(const char *symbol);
 
-void ActorData_DrawStats(const ActorData *actorData);
-
-void UI_DrawCharUnderCurrentActor(char *symbol);
-
+// Entry point
 int main(bool hardReset)
 {
     if (!hardReset)
         SYS_hardReset();
     
-    GameInit();
+    Game_Init();
     
     while (TRUE)
     {
-        
         SPR_update();
         SYS_doVBlankProcess();
     }
@@ -77,92 +98,104 @@ int main(bool hardReset)
     return 0;
 }
 
-void GameInit()
+// Initialize game state
+static void Game_Init()
 {
     SPR_init();
     
-
-    
-    GameObject_Create((GameObject *) &player, playersData[0], &sprDefSonic);
+    // Initialize player
+    GameObject_Init((GameObject *) &player, playersData[0], &sprDefSonic);
     SPR_setAnim(player.sprite, 1);
     
+    // Initialize enemies
     for (u16 i = 0; i < ENEMY_COUNT; i++)
-        GameObject_Create((GameObject *) enemies + i, enemiesData[i], enemySprDefs[i]);
+    {
+        GameObject_Init((GameObject *) &enemies[i], enemiesData[i], enemySprDefs[i]);
+    }
     
-    // Set up joypad event handler
-    JOY_setEventHandler(Joy_EventHandler);
+    // Set up input
+    JOY_setEventHandler(Joy_Handler);
     
-    VDP_setTextPalette(PAL3);
-
+    // Setup UI
+    VDP_setTextPalette(TEXT_PALETTE);
     VDP_drawText("Use DPAD to list char's stats", 5, 0);
+    UI_DrawStats(enemiesData[currentEnemyIndex]);
 }
 
-void GameObject_Create(GameObject *gameObject, const ActorData *charData, const SpriteDefinition *sprDef)
+// Initialize a game object
+static void GameObject_Init(GameObject *obj, const ActorData *data, const SpriteDefinition *sprDef)
 {
-    gameObject->data = *charData;
+    obj->data = *data;
     
-    // load palette
-    PAL_setPalette(gameObject->pal, sprDef->palette->data, DMA);
-    gameObject->sprite = SPR_addSprite(sprDef, F32_toInt(gameObject->x), F32_toInt(gameObject->y),
-                                       TILE_ATTR(gameObject->pal, TRUE, FALSE, gameObject->flipH));
+    PAL_setPalette(obj->data.pal, sprDef->palette->data, DMA);
+    obj->sprite = SPR_addSprite(
+        sprDef,
+        F32_toInt(obj->data.x),
+        F32_toInt(obj->data.y),
+        TILE_ATTR(obj->data.pal, TRUE, FALSE, obj->data.flipH)
+    );
 }
 
-// Handles joypad input events
-void Joy_EventHandler(u16 joy, u16 changed, u16 state)
+// Handle joypad input
+static void Joy_Handler(u16 joy, u16 changed, u16 state)
 {
-    UI_DrawCharUnderCurrentActor(" ");
+    UI_DrawMarker(" ");
     
-    // Handle speed adjustment
     if (changed & state & BUTTON_RIGHT)
     {
-        if (objectIndex == ENEMY_COUNT - 1)
-            objectIndex = 0;
-        else
-            objectIndex++;
+        currentEnemyIndex = (currentEnemyIndex == ENEMY_COUNT - 1) ? 0 : currentEnemyIndex + 1;
     }
     else if (changed & state & BUTTON_LEFT)
     {
-        if (objectIndex == 0)
-            objectIndex = ENEMY_COUNT - 1;
-        else
-            objectIndex--;
+        currentEnemyIndex = (currentEnemyIndex == 0) ? ENEMY_COUNT - 1 : currentEnemyIndex - 1;
     }
     
-    ActorData_DrawStats(enemiesData[objectIndex]);
+    UI_DrawStats(enemiesData[currentEnemyIndex]);
 }
 
-// Draw UI text
-void ActorData_DrawStats(const ActorData *actorData)
+// Draw actor statistics
+static void UI_DrawStats(const ActorData *actor)
 {
-    char str[14][40];
+    char text[STAT_LINES][TEXT_BUFFER];
     u16 y = 0;
-
-    // ================================== Pool usage =======================================
-    // Draw the number of allocated / free objects for each pool
-    sprintf(str[y++], " TMX OBJECT IMPORTED DATA:");
-    sprintf(str[y++], "");
-    sprintf(str[y++], "   name: %-3s", actorData->name);
-    sprintf(str[y++], "   id: %d", actorData->id);
-    sprintf(str[y++], "   X:%03d, Y:%03d", F32_toInt(actorData->x), F32_toInt(actorData->y));
-    sprintf(str[y++], "   palette ind: %d", actorData->pal);
-    sprintf(str[y++], "   priority: %-5s", (actorData->priority) ? "TRUE" : "FALSE");
-    sprintf(str[y++], "   flipH: %-5s", (actorData->flipH) ? "TRUE" : "FALSE");
-    sprintf(str[y++], "   type: %-5s", (actorData->priority) ? "TRUE" : "FALSE");
-    sprintf(str[y++], "   speed: %02d.%d", F32_toInt(actorData->speed), (u16) (mulu(F32_frac(actorData->speed), 100) >> FIX32_FRAC_BITS));
-    sprintf(str[y++], "   hp: %d", actorData->hp);
-    sprintf(str[y++], "   phrase: %-69s", actorData->phrase);
-
     
-    VDP_setTextPalette(PAL1);
-    for (u16 i = 0; i < 15; i++)
-        VDP_drawTextBG(BG_B, str[i], 0, 2 + i);
-
-    VDP_setTextPalette(PAL3);
-    UI_DrawCharUnderCurrentActor("^");
+    sprintf(text[y++], " TMX OBJECT IMPORTED DATA:");
+    sprintf(text[y++], "   target: %p", actor);
+    sprintf(text[y++], "");
+    sprintf(text[y++], "   name(string): %-3s", actor->name);
+    sprintf(text[y++], "   id: %d", actor->id);
+    sprintf(text[y++], "   X:%03d, Y:%03d", F32_toInt(actor->x), F32_toInt(actor->y));
+    sprintf(text[y++], "   palette ind: %d", actor->pal);
+    sprintf(text[y++], "   priority: %-5s", actor->priority ? "TRUE" : "FALSE");
+    sprintf(text[y++], "   flipH: %-5s", actor->flipH ? "TRUE" : "FALSE");
+    sprintf(text[y++], "   target: %p", actor->target);
+    sprintf(text[y++], "   type: %-5s", actor->priority ? "TRUE" : "FALSE");
+    sprintf(text[y++], "   speed: %02d.%d", F32_toInt(actor->speed), (u16) (mulu(F32_frac(actor->speed),
+                                                                                 100) >> FIX32_FRAC_BITS));
+    sprintf(text[y++], "   hp: %d", actor->hp);
+    sprintf(text[y++], "   phrase: %-69s", actor->phrase);
+    
+    VDP_setTextPalette(UI_PALETTE);
+    for (u16 i = 0; i < STAT_LINES; i++)
+    {
+        VDP_drawTextBG(BG_B, text[i], 0, 2 + i);
+    }
+    
+    VDP_setTextPalette(TEXT_PALETTE);
+    UI_DrawMarker("^");
+    
+    VDP_drawTextBG(BG_B, textData[0]->text, 0, 2 + y + 5);
+    
 }
 
-void UI_DrawCharUnderCurrentActor(char *symbol)
+// Draw selection marker
+static void UI_DrawMarker(const char *symbol)
 {
-    VDP_drawTextBG(BG_B, symbol, (F32_toInt(enemiesData[objectIndex]->x) >> 3) + (enemySprDefs[objectIndex]->w >> 4),
-                   (F32_toInt(enemiesData[objectIndex]->y) >> 3) + (enemySprDefs[objectIndex]->h >> 3) + 1);
+    const ActorData *actor = enemiesData[currentEnemyIndex];
+    const SpriteDefinition *sprDef = enemySprDefs[currentEnemyIndex];
+    
+    s16 x = (F32_toInt(actor->x) >> 3) + (sprDef->w >> 4);
+    s16 y = (F32_toInt(actor->y) >> 3) + (sprDef->h >> 3) + 1;
+    
+    VDP_drawTextBG(BG_B, symbol, x, y);
 }
