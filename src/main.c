@@ -1,3 +1,16 @@
+// *****************************************************************************
+//  TMX-Objects sample
+//
+//  This sample shows how you can load object data from TMX files (Tiled map format).
+//  It shows loading of built-in 'name', 'x', 'y', and various custom fields using Tiled
+//  types 'int', 'float', 'bool', 'string', 'object', 'Enum', placing objects of same and
+//  different types on different and identical layers and filtering of objects at loading.
+//
+//  Use DPAD to toggle the active object and the description of its statistics
+//
+//  written by werton playskin on 05/2025
+// *****************************************************************************
+
 #include <genesis.h>
 #include "sprites.h"
 
@@ -31,9 +44,9 @@ typedef struct
     f32 y;                      // Y position (fixed point)
     ObjectType type;            // Object type index
     SpriteDefEnum sprDefInd;    // Sprite definition index
-    u16 id;                     // ID (not used just for example)
     u8 pal;                     // Palette index
     bool flipH;                 // Horizontal flip flag
+    bool flipV;                 // Horizontal flip flag
     bool priority;              // priority flag
     bool enabled;               // state flag (not used just for example)
 } TMX_BaseObjectData;
@@ -235,7 +248,7 @@ static void GameObject_Init(GameObject *obj, const TMX_BaseObjectData *data, con
     obj->sprite = SPR_addSprite(sprDef,
                                 F32_toInt(obj->data.x),
                                 F32_toInt(obj->data.y),
-                                TILE_ATTR(obj->data.pal, TRUE, FALSE, obj->data.flipH));
+                                TILE_ATTR(obj->data.pal, obj->data.priority, obj->data.flipV, obj->data.flipH));
 }
 
 // Initialize a game item object
@@ -247,7 +260,7 @@ static void GameItem_Init(GameItem *obj, const TMX_ItemData *data, const SpriteD
     obj->sprite = SPR_addSprite(sprDef,
                                 F32_toInt(obj->data.x),
                                 F32_toInt(obj->data.y),
-                                TILE_ATTR(obj->data.pal, TRUE, FALSE, obj->data.flipH));
+                                TILE_ATTR(obj->data.pal, obj->data.priority, obj->data.flipV, obj->data.flipH));
 }
 
 // Initialize a game actor object
@@ -259,7 +272,7 @@ static void GameActor_Init(GameActor *obj, const TMX_ActorData *data, const Spri
     obj->sprite = SPR_addSprite(sprDef,
                                 F32_toInt(obj->data.x),
                                 F32_toInt(obj->data.y),
-                                TILE_ATTR(obj->data.pal, TRUE, FALSE, obj->data.flipH));
+                                TILE_ATTR(obj->data.pal, obj->data.priority, obj->data.flipV, obj->data.flipH));
 }
 
 // Handle joypad input events
@@ -302,13 +315,13 @@ static u16 UI_DrawBaseObjectData(const TMX_BaseObjectData *object)
     sprintf(text[y++], " _______ TMX DATA _______");
     sprintf(text[y++], " Name:     %-11s", object->name);
     sprintf(text[y++], " Type:     %-15s", objectTypeNames[object->type]);
-    sprintf(text[y++], " Id:       %d", object->id);
     sprintf(text[y++], " Enabled:  %-5s", object->enabled ? "TRUE" : "FALSE");
     sprintf(text[y++], " Pos:      X:%03d, Y:%03d", F32_toInt(object->x), F32_toInt(object->y));
     sprintf(text[y++], " SprDefInd:%-15s", sprDefNames[object->sprDefInd]);
     sprintf(text[y++], " PalInd:   %d", object->pal);
     sprintf(text[y++], " Prio:     %-5s", object->priority ? "TRUE" : "FALSE");
     sprintf(text[y++], " FlipH:    %-5s", object->flipH ? "TRUE" : "FALSE");
+    sprintf(text[y++], " FlipV:    %-5s", object->flipV ? "TRUE" : "FALSE");
     
     UI_DrawStringsArray((const char *)text, 0, y);
     return y;
@@ -350,7 +363,7 @@ static void UI_DrawItemData(const TMX_ItemData *item)
     UI_DrawStringsArray((const char *)text, 0, y);
 }
 
-// Draw appropriate data based on object type
+// Draw appropriate data based on an object type
 static void UI_DrawData(const TMX_BaseObjectData *object)
 {
     switch (object->type)
@@ -366,7 +379,7 @@ static void UI_DrawData(const TMX_BaseObjectData *object)
     }
 }
 
-// Draw selection cursor around selected object
+// Draw selection cursor around a selected object
 static void UI_DrawCursor(const char *symbol1, const char *symbol2)
 {
     const TMX_BaseObjectData *object = objectsList[selectedObjectIndex];
