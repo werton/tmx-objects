@@ -1,1 +1,1 @@
-# Clion templete project for SGDK
+# TMX-object example for SGDK
