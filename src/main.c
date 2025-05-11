@@ -136,7 +136,6 @@ typedef struct
 #define STR(x) #x
 
 // Game state variables
-static Player player;
 static Player players[PLAYER_COUNT];
 static Enemy enemies[ENEMY_COUNT];
 static Item items[ITEM_COUNT];
@@ -171,7 +170,6 @@ const SpriteDefinition *spriteDefs[OBJECTS_COUNT] = {
 // Forward declarations
 static void Game_Init();
 static void Joy_Handler(u16 joy, u16 changed, u16 state);
-static void GameObject_Init(GameObject *obj, const TMX_BaseObjectData *data, const SpriteDefinition *sprDef);
 static void GameItem_Init(GameItem *obj, const TMX_ItemData *data, const SpriteDefinition *sprDef);
 static void GameActor_Init(GameActor *obj, const TMX_ActorData *data, const SpriteDefinition *sprDef);
 static void UI_DrawCursor(const char *symbol1, const char *symbol2);
@@ -221,13 +219,13 @@ static void Game_Init()
     // Initialize players
     for (u16 i = 0; i < PLAYER_COUNT; i++)
     {
-        GameActor_Init((GameActor *)&player, playersData[i], spriteDefs[playersData[i]->sprDefInd]);
+        GameActor_Init((GameActor *)&players[i], playersData[i], spriteDefs[playersData[i]->sprDefInd]);
         // Add players to a global object list
-        objectsList[ENEMY_COUNT + ITEM_COUNT + i] = (TMX_BaseObjectData *)&player;
+        objectsList[ENEMY_COUNT + ITEM_COUNT + i] = (TMX_BaseObjectData *)&players[i];
     }
     
     // Set Sonic animation to 1
-    SPR_setAnim(player.sprite, 1);
+    SPR_setAnim(players[0].sprite, 1);
     
     // Set up input handler
     JOY_setEventHandler(Joy_Handler);
@@ -237,18 +235,6 @@ static void Game_Init()
     VDP_drawText("USE DPAD TO SWITCH CHARACTER", 6, 0);
     UI_DrawData((const TMX_BaseObjectData *)objectsList[selectedObjectIndex]);
     UI_DrawCursor(">>", "<<");
-}
-
-// Initialize a base game object
-static void GameObject_Init(GameObject *obj, const TMX_BaseObjectData *data, const SpriteDefinition *sprDef)
-{
-    obj->data = *data;
-    
-    PAL_setPalette(obj->data.pal, sprDef->palette->data, DMA);
-    obj->sprite = SPR_addSprite(sprDef,
-                                F32_toInt(obj->data.x),
-                                F32_toInt(obj->data.y),
-                                TILE_ATTR(obj->data.pal, obj->data.priority, obj->data.flipV, obj->data.flipH));
 }
 
 // Initialize a game item object
@@ -282,10 +268,10 @@ static void Joy_Handler(u16 joy, u16 changed, u16 state)
     UI_DrawCursor("  ", "  ");
     
     // Handle direction input
-    if (changed & state & BUTTON_RIGHT)
+    if (changed & state & BUTTON_LEFT)
         selectedObjectIndex = (selectedObjectIndex == OBJECTS_COUNT - 1) ? 0 : selectedObjectIndex + 1;
-    else if (changed & state & BUTTON_LEFT)
-        selectedObjectIndex = (selectedObjectIndex == 0) ? OBJECTS_COUNT - 1 : selectedObjectIndex - 1;
+    else if (changed & state & BUTTON_RIGHT)
+        selectedObjectIndex = (selectedObjectIndex == 0) ? OBJECTS_COUNT - 1 : (u16) (selectedObjectIndex - 1);
     
     // Update displayed data
     UI_DrawData((const TMX_BaseObjectData *)objectsList[selectedObjectIndex]);
@@ -299,10 +285,7 @@ void UI_DrawStringsArray(const char *text, u16 fromY, u16 length)
 {
     VDP_setTextPalette(PAL1);
     for (u16 i = 0; i < length; i++)
-    {
-        if (text + i * TEXT_BUFFER != NULL)
-            VDP_drawTextBG(BG_A, text + i * TEXT_BUFFER, 0, 2 + fromY + i);
-    }
+        VDP_drawTextBG(BG_A, text + i * TEXT_BUFFER, 0, 2 + fromY + i);
 }
 
 // Draw base object statistics
@@ -311,12 +294,11 @@ static u16 UI_DrawBaseObjectData(const TMX_BaseObjectData *object)
     static char text[STAT_LINES][TEXT_BUFFER];
     u16 y = 0;
     
-    sprintf(text[y++], "");
     sprintf(text[y++], " _______ TMX DATA _______");
     sprintf(text[y++], " Name:     %-11s", object->name);
     sprintf(text[y++], " Type:     %-15s", objectTypeNames[object->type]);
     sprintf(text[y++], " Enabled:  %-5s", object->enabled ? "TRUE" : "FALSE");
-    sprintf(text[y++], " Pos:      X:%03d, Y:%03d", F32_toInt(object->x), F32_toInt(object->y));
+    sprintf(text[y++], " Pos:      X:%03ld, Y:%03ld", F32_toInt(object->x), F32_toInt(object->y));
     sprintf(text[y++], " SprDefInd:%-15s", sprDefNames[object->sprDefInd]);
     sprintf(text[y++], " PalInd:   %d", object->pal);
     sprintf(text[y++], " Prio:     %-5s", object->priority ? "TRUE" : "FALSE");
@@ -336,7 +318,7 @@ static void UI_DrawActorData(const TMX_ActorData *actor)
     sprintf(text[y++], " Target:   %s(ptr:%p) %-10s",
             (actor->target != NULL) ? ((TMX_ActorData *)actor->target)->name : "NONE",
             actor->target, "");
-    sprintf(text[y++], " Speed:    %02d.%d %-25s",
+    sprintf(text[y++], " Speed:    %02ld.%d %-25s",
             F32_toInt(actor->speed),
             (u16)(mulu(F32_frac(actor->speed), 100) >> FIX32_FRAC_BITS), "");
     sprintf(text[y++], " HP:       %-29d", actor->hp);
