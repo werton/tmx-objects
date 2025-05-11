@@ -30,7 +30,7 @@ typedef struct
     char *phrase;       // Dialogue text
     f32 speed;          // Movement speed
     s16 hp;             // Hit points
-    Object target;         // Horizontal flip
+    void *target;         // Horizontal flip
 } TMX_ActorData;
 
 // Base game object with sprite and data
@@ -111,8 +111,11 @@ static void Game_Init();
 static void Joy_Handler(u16 joy, u16 changed, u16 state);
 
 static void GameObject_Init(GameObject *obj, const TMX_BaseObjectData *data, const SpriteDefinition *sprDef);
+
 static void GameItem_Init(GameItem *obj, const TMX_ItemData *data, const SpriteDefinition *sprDef);
+
 static void GameActor_Init(GameActor *obj, const TMX_ActorData *data, const SpriteDefinition *sprDef);
+
 static void UI_DrawStats(const TMX_ActorData *actor);
 
 static void UI_DrawMarker(const char *symbol);
@@ -149,13 +152,13 @@ static void Game_Init()
     
     // Initialize enemies
     for (u16 i = 0; i < ITEM_COUNT; i++)
-        GameItem_Init((GameItem *) &enemies[i], itemsData[i], &sprDefDisplay);
+        GameItem_Init((GameItem *) &items[i], itemsData[i], &sprDefDisplay);
     
     // Set up input
     JOY_setEventHandler(Joy_Handler);
     
     // Setup UI
-    VDP_setTextPalette(TEXT_PALETTE);
+    VDP_setTextPalette(PAL2);
     VDP_drawText("Use DPAD to list char's stats", 5, 0);
     UI_DrawStats(enemiesData[currentEnemyIndex]);
 }
@@ -225,21 +228,20 @@ static void UI_DrawStats(const TMX_ActorData *actor)
     static char text[STAT_LINES][TEXT_BUFFER];
     u16 y = 0;
     
-    sprintf(text[y++], " TMX OBJECT IMPORTED DATA:");
-    sprintf(text[y++], "   target: %p", actor);
     sprintf(text[y++], "");
-    sprintf(text[y++], "   name(string): %-3s", actor->name);
-    sprintf(text[y++], "   id: %d", actor->id);
-    sprintf(text[y++], "   X:%03d, Y:%03d", F32_toInt(actor->x), F32_toInt(actor->y));
-    sprintf(text[y++], "   palette ind: %d", actor->pal);
-    sprintf(text[y++], "   priority: %-5s", actor->priority ? "TRUE" : "FALSE");
-    sprintf(text[y++], "   flipH: %-5s", actor->flipH ? "TRUE" : "FALSE");
-    sprintf(text[y++], "   target: %p", actor->target);
-    sprintf(text[y++], "   type: %-5s", actor->priority ? "TRUE" : "FALSE");
-    sprintf(text[y++], "   speed: %02d.%d", F32_toInt(actor->speed), (u16) (mulu(F32_frac(actor->speed),
-                                                                                 100) >> FIX32_FRAC_BITS));
-    sprintf(text[y++], "   hp: %d", actor->hp);
-    sprintf(text[y++], "   phrase: %-70s", actor->phrase);
+    sprintf(text[y++], " _______ TMX DATA _______");
+    sprintf(text[y++], " Name:   %-11s", actor->name);
+    sprintf(text[y++], " Id:     %d", actor->id);
+    sprintf(text[y++], " Pos:    X:%03d, Y:%03d", F32_toInt(actor->x), F32_toInt(actor->y));
+    sprintf(text[y++], " PalInd: %d", actor->pal);
+    sprintf(text[y++], " Prio:   %-5s", actor->priority ? "TRUE" : "FALSE");
+    sprintf(text[y++], " FlipH:  %-5s", actor->flipH ? "TRUE" : "FALSE");
+    sprintf(text[y++], " Target: %s(ptr:%p) %-5s", ((TMX_ActorData *) actor->target)->name, actor->target, "");
+    sprintf(text[y++], " Type:   %-5s", actor->priority ? "TRUE" : "FALSE");
+    sprintf(text[y++], " Speed:  %02d.%d", F32_toInt(actor->speed), (u16) (mulu(F32_frac(actor->speed),100) >> FIX32_FRAC_BITS));
+    sprintf(text[y++], " HP:     %d", actor->hp);
+    sprintf(text[y++], " Phrase: %-70s", actor->phrase);
+    sprintf(text[y++], " ______________________________________");
     
     VDP_setTextPalette(UI_PALETTE);
     for (u16 i = 0; i < STAT_LINES; i++)
@@ -248,10 +250,9 @@ static void UI_DrawStats(const TMX_ActorData *actor)
             VDP_drawTextBG(BG_A, text[i], 0, 2 + i);
     }
     
-    VDP_setTextPalette(TEXT_PALETTE);
+    VDP_setTextPalette(PAL3);
     UI_DrawMarker("^");
-    
-    
+       
 }
 
 // Draw selection marker
@@ -264,4 +265,5 @@ static void UI_DrawMarker(const char *symbol)
     s16 y = (F32_toInt(actor->y) >> 3) + (sprDef->h >> 3) + 1;
     
     VDP_drawTextBG(BG_B, symbol, x, y);
+    VDP_drawTextBG(BG_B, symbol, x, y+1);
 }
