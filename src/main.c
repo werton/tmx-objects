@@ -19,7 +19,6 @@ typedef enum
     TYPE_COUNT,
 } ObjectType;
 
-
 // Contains all data properties for game actors
 typedef struct
 {
@@ -39,17 +38,17 @@ typedef struct
 typedef struct
 {
     TMX_BaseObjectData;
-    s16 hp;             // Hit points
+    s16 hp;                     // Hit points
 } TMX_ItemData;
 
 // Contains all data properties for game actors
 typedef struct
 {
     TMX_BaseObjectData;
-    char *phrase;       // Dialogue text
-    f32 speed;          // Movement speed
-    s16 hp;             // Hit points
-    void *target;         // Horizontal flip
+    char *phrase;               // Dialogue text
+    f32 speed;                  // Movement speed
+    s16 hp;                     // Hit points
+    void *target;               // Horizontal flip
 } TMX_ActorData;
 
 // Base game object with sprite and data
@@ -60,7 +59,7 @@ typedef struct
         TMX_BaseObjectData data; // Named access
         TMX_BaseObjectData;      // Anonymous access
     };
-    Sprite *sprite;     // Sprite reference
+    Sprite *sprite;             // Sprite reference
 } GameObject;
 
 // Base game object with sprite and data
@@ -68,10 +67,10 @@ typedef struct
 {
     union
     {
-        TMX_ItemData data; // Named access
-        TMX_ItemData;      // Anonymous access
+        TMX_ItemData data;      // Named access
+        TMX_ItemData;           // Anonymous access
     };
-    Sprite *sprite;     // Sprite reference
+    Sprite *sprite;             // Sprite reference
 } GameItem;
 
 // Base game object with sprite and data
@@ -79,30 +78,30 @@ typedef struct
 {
     union
     {
-        TMX_ActorData data; // Named access
-        TMX_ActorData;      // Anonymous access
+        TMX_ActorData data;     // Named access
+        TMX_ActorData;          // Anonymous access
     };
-    Sprite *sprite;     // Sprite reference
+    Sprite *sprite;             // Sprite reference
 } GameActor;
 
 typedef struct
 {
-    GameItem;           // Inherits GameObject
-    u16 size;           // Not used
+    GameItem;                   // Inherits GameObject
+    u16 size;                   // Not used
 } Item;
 
 // Player-specific object
 typedef struct
 {
-    GameActor;          // Inherits GameObject
-    u16 lives;          // Not used
+    GameActor;                  // Inherits GameObject
+    u16 lives;                  // Not used
 } Player;
 
 // Enemy-specific object
 typedef struct
 {
-    GameActor;          // Inherits GameObject
-    V2ff32 wayPoint;    // Not used
+    GameActor;                  // Inherits GameObject
+    V2ff32 wayPoint;            // Not used
 } Enemy;
 
 #include "objects.h"
@@ -122,7 +121,8 @@ static Player player;
 static Player players[PLAYER_COUNT];
 static Enemy enemies[ENEMY_COUNT];
 static Item items[ITEM_COUNT];
-static u16 currentEnemyIndex = 0;
+static u16 selectedObjectIndex = 0;
+TMX_BaseObjectData *objectsList[OBJECTS_COUNT];
 
 const char sprDefNames[DEF_COUNT][20] = {
     [DEF_SONIC] = STR(DEF_SONIC),
@@ -159,7 +159,7 @@ static void GameItem_Init(GameItem *obj, const TMX_ItemData *data, const SpriteD
 
 static void GameActor_Init(GameActor *obj, const TMX_ActorData *data, const SpriteDefinition *sprDef);
 
-static void UI_DrawCursor(const char *symbol);
+static void UI_DrawCursor(const char *symbol1, const char *symbol2);
 
 static u16 UI_DrawObjectData(const TMX_BaseObjectData *object);
 
@@ -191,17 +191,26 @@ static void Game_Init()
 {
     SPR_init();
     
-    // Initialize player
-    for (u16 i = 0; i < PLAYER_COUNT; i++)
-        GameActor_Init((GameActor *) &player, playersData[i], spriteDefs[playersData[i]->sprDefInd]);
-    
     // Initialize enemies
     for (u16 i = 0; i < ENEMY_COUNT; i++)
+    {
         GameActor_Init((GameActor *) &enemies[i], enemiesData[i], spriteDefs[enemiesData[i]->sprDefInd]);
+        objectsList[i] = (TMX_BaseObjectData *) &enemies[i];
+    }
     
     // Initialize enemies
     for (u16 i = 0; i < ITEM_COUNT; i++)
+    {
         GameItem_Init((GameItem *) &items[i], itemsData[i], spriteDefs[itemsData[i]->sprDefInd]);
+        objectsList[ENEMY_COUNT + i] = (TMX_BaseObjectData *) &items[i];
+    }
+    
+    // Initialize player
+    for (u16 i = 0; i < PLAYER_COUNT; i++)
+    {
+        GameActor_Init((GameActor *) &player, playersData[i], spriteDefs[playersData[i]->sprDefInd]);
+        objectsList[ENEMY_COUNT + ITEM_COUNT + i] = (TMX_BaseObjectData *) &player;
+    }
     
     SPR_setAnim(player.sprite, 1);
     // Set up input
@@ -210,7 +219,8 @@ static void Game_Init()
     // Setup UI
     VDP_setTextPalette(PAL2);
     VDP_drawText("USE DPAD TO SWITCH CHARACTER", 6, 0);
-    UI_DrawActorData(enemiesData[currentEnemyIndex]);
+    UI_DrawData((const TMX_BaseObjectData *) objectsList[selectedObjectIndex]);
+    UI_DrawCursor(">>", "<<");
 }
 
 // Initialize a game object
@@ -219,12 +229,8 @@ static void GameObject_Init(GameObject *obj, const TMX_BaseObjectData *data, con
     obj->data = *data;
     
     PAL_setPalette(obj->data.pal, sprDef->palette->data, DMA);
-    obj->sprite = SPR_addSprite(
-        sprDef,
-        F32_toInt(obj->data.x),
-        F32_toInt(obj->data.y),
-        TILE_ATTR(obj->data.pal, TRUE, FALSE, obj->data.flipH)
-    );
+    obj->sprite = SPR_addSprite(sprDef, F32_toInt(obj->data.x), F32_toInt(obj->data.y),
+        TILE_ATTR(obj->data.pal, TRUE, FALSE, obj->data.flipH));
 }
 
 // Initialize a game object
@@ -233,12 +239,8 @@ static void GameItem_Init(GameItem *obj, const TMX_ItemData *data, const SpriteD
     obj->data = *data;
     
     PAL_setPalette(obj->data.pal, sprDef->palette->data, DMA);
-    obj->sprite = SPR_addSprite(
-        sprDef,
-        F32_toInt(obj->data.x),
-        F32_toInt(obj->data.y),
-        TILE_ATTR(obj->data.pal, TRUE, FALSE, obj->data.flipH)
-    );
+    obj->sprite = SPR_addSprite(sprDef, F32_toInt(obj->data.x), F32_toInt(obj->data.y),
+                                TILE_ATTR(obj->data.pal, TRUE, FALSE, obj->data.flipH));
 }
 
 // Initialize a game object
@@ -247,32 +249,23 @@ static void GameActor_Init(GameActor *obj, const TMX_ActorData *data, const Spri
     obj->data = *data;
     
     PAL_setPalette(obj->data.pal, sprDef->palette->data, DMA);
-    obj->sprite = SPR_addSprite(
-        sprDef,
-        F32_toInt(obj->data.x),
-        F32_toInt(obj->data.y),
-        TILE_ATTR(obj->data.pal, TRUE, FALSE, obj->data.flipH)
-    );
+    obj->sprite = SPR_addSprite(sprDef, F32_toInt(obj->data.x), F32_toInt(obj->data.y),
+                                TILE_ATTR(obj->data.pal, TRUE, FALSE, obj->data.flipH));
 }
 
 // Handle joypad input
 static void Joy_Handler(u16 joy, u16 changed, u16 state)
 {
-    UI_DrawCursor(" ");
+    UI_DrawCursor("  ", "  ");
     
     if (changed & state & BUTTON_RIGHT)
-        currentEnemyIndex = (currentEnemyIndex == ENEMY_COUNT + 1) ? 0 : currentEnemyIndex + 1;
+        selectedObjectIndex = (selectedObjectIndex == OBJECTS_COUNT - 1) ? 0 : selectedObjectIndex + 1;
     else if (changed & state & BUTTON_LEFT)
-        currentEnemyIndex = (currentEnemyIndex == 0) ? ENEMY_COUNT + 1 : currentEnemyIndex - 1;
+        selectedObjectIndex = (selectedObjectIndex == 0) ? OBJECTS_COUNT - 1 : selectedObjectIndex - 1;
     
-    if (currentEnemyIndex < ENEMY_COUNT)
-        UI_DrawData((const TMX_BaseObjectData *) enemiesData[currentEnemyIndex]);
-    if (currentEnemyIndex == ENEMY_COUNT)
-        UI_DrawData((const TMX_BaseObjectData *) itemsData[0]);
-    if (currentEnemyIndex == ENEMY_COUNT + 1)
-        UI_DrawData((const TMX_BaseObjectData *) playersData[0]);
+    UI_DrawData((const TMX_BaseObjectData *) objectsList[selectedObjectIndex]);
     
-    UI_DrawCursor("^");
+    UI_DrawCursor(">>", "<<");
 }
 
 void UI_DrawStringsArray(const char *text, u16 fromY, u16 length)
@@ -359,15 +352,16 @@ static void UI_DrawData(const TMX_BaseObjectData *object)
 }
 
 // Draw selection marker
-static void UI_DrawCursor(const char *symbol)
+static void UI_DrawCursor(const char *symbol1, const char *symbol2)
 {
-    const TMX_ActorData *actor = enemiesData[currentEnemyIndex];
-    const SpriteDefinition *sprDef = spriteDefs[actor->sprDefInd];
+    const TMX_BaseObjectData *object = objectsList[selectedObjectIndex];
+    const SpriteDefinition *sprDef = spriteDefs[object->sprDefInd];
     
-    s16 x = (F32_toInt(actor->x) >> 3) + (sprDef->w >> 4);
-    s16 y = (F32_toInt(actor->y) >> 3) + (sprDef->h >> 3) + 1;
+    s16 x1 = (F32_toInt(object->x) >> 3) - (sprDef->w >> 4);
+    s16 x2 = (F32_toInt(object->x) >> 3) + (sprDef->w>>3) + (sprDef->w >> 4) - 1;
+    s16 y = (F32_toInt(object->y) >> 3) + (sprDef->h >> 4);
     
     VDP_setTextPalette(PAL3);
-    VDP_drawTextBG(BG_B, symbol, x, y);
-    VDP_drawTextBG(BG_B, symbol, x, y + 1);
+    VDP_drawTextBG(BG_B, symbol1, x1, y);
+    VDP_drawTextBG(BG_B, symbol2, x2, y);
 }

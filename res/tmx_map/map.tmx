@@ -33,7 +33,7 @@
 </data>
  </layer>
  <objectgroup id="2" name="ActorLayer">
-  <object id="1" name="Sonic" type="TiledPlayer" x="104" y="162" width="48" height="48">
+  <object id="1" name="Sonic" type="TiledPlayer" x="108" y="176" width="48" height="48">
    <properties>
     <property name="damage" type="int" value="10"/>
     <property name="enabled" type="bool" value="true"/>
@@ -51,7 +51,7 @@
     <property name="type" type="int" propertytype="ObjectType" value="0"/>
    </properties>
   </object>
-  <object id="2" name="Buzz Bomber" type="TiledEnemy" x="24" y="144" width="48" height="32">
+  <object id="2" name="Buzz Bomber" type="TiledEnemy" x="28" y="148" width="48" height="32">
    <properties>
     <property name="damage" type="int" value="10"/>
     <property name="enabled" type="bool" value="true"/>
@@ -69,7 +69,7 @@
     <property name="type" type="int" propertytype="ObjectType" value="1"/>
    </properties>
   </object>
-  <object id="3" name="Crabmeat" type="TiledEnemy" x="232" y="32" width="48" height="32">
+  <object id="3" name="Crabmeat" type="TiledEnemy" x="236" y="32" width="48" height="32">
    <properties>
     <property name="damage" type="int" value="10"/>
     <property name="enabled" type="bool" value="true"/>
@@ -107,7 +107,7 @@
   </object>
  </objectgroup>
  <objectgroup id="5" name="ItemLayer">
-  <object id="6" name="Display" type="TMX_Item" x="192" y="174" width="32" height="32">
+  <object id="6" name="Display" type="TMX_Item" x="196" y="172" width="32" height="32">
    <properties>
     <property name="enabled" type="bool" value="true"/>
     <property name="exportName" type="bool" value="true"/>
