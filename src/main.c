@@ -1,6 +1,9 @@
 #include <genesis.h>
 #include "sprites.h"
 
+// Enumeration and type declaration
+
+// Sprite definition enumerations
 typedef enum
 {
     DEF_SONIC,
@@ -11,6 +14,7 @@ typedef enum
     DEF_COUNT
 } SpriteDefEnum;
 
+// Object type enumerations
 typedef enum
 {
     TYPE_PLAYER,
@@ -19,36 +23,36 @@ typedef enum
     TYPE_COUNT,
 } ObjectType;
 
-// Contains all data properties for game actors
+// Base object data properties
 typedef struct
 {
     char *name;                 // Display name
     f32 x;                      // X position (fixed point)
     f32 y;                      // Y position (fixed point)
-    ObjectType type;
-    SpriteDefEnum sprDefInd;
-    u16 id;                     // Unique ID
+    ObjectType type;            // Object type index
+    SpriteDefEnum sprDefInd;    // Sprite definition index
+    u16 id;                     // ID (not used just for example)
     u8 pal;                     // Palette index
-    bool flipH;                 // Horizontal flip
-    bool priority;              // Render priority
-    bool enabled;               // Render priority
+    bool flipH;                 // Horizontal flip flag
+    bool priority;              // priority flag
+    bool enabled;               // state flag (not used just for example)
 } TMX_BaseObjectData;
 
-// Contains all data properties for game actors
+// Extended object data for items
 typedef struct
 {
-    TMX_BaseObjectData;
-    s16 hp;                     // Hit points
+    TMX_BaseObjectData;         // Base object properties
+    s16 hp;                     // Hit points (not used just for example)
 } TMX_ItemData;
 
-// Contains all data properties for game actors
+// Extended object data for actors
 typedef struct
 {
-    TMX_BaseObjectData;
+    TMX_BaseObjectData;         // Base object properties
     char *phrase;               // Dialogue text
-    f32 speed;                  // Movement speed
-    s16 hp;                     // Hit points
-    void *target;               // Horizontal flip
+    f32 speed;                  // Movement speed (not used just for example)
+    s16 hp;                     // Hit points (not used just for example)
+    void *target;               // Target reference
 } TMX_ActorData;
 
 // Base game object with sprite and data
@@ -59,10 +63,10 @@ typedef struct
         TMX_BaseObjectData data; // Named access
         TMX_BaseObjectData;      // Anonymous access
     };
-    Sprite *sprite;             // Sprite reference
+    Sprite *sprite;              // Sprite reference
 } GameObject;
 
-// Base game object with sprite and data
+// Game item object with sprite and data
 typedef struct
 {
     union
@@ -73,7 +77,7 @@ typedef struct
     Sprite *sprite;             // Sprite reference
 } GameItem;
 
-// Base game object with sprite and data
+// Game actor object with sprite and data
 typedef struct
 {
     union
@@ -84,29 +88,30 @@ typedef struct
     Sprite *sprite;             // Sprite reference
 } GameActor;
 
+// Item object extending GameItem
 typedef struct
 {
-    GameItem;                   // Inherits GameObject
-    u16 size;                   // Not used
+    GameItem;                   // Inherits GameItem
+    u16 size;                   // Size property (not used just for example)
 } Item;
 
 // Player-specific object
 typedef struct
 {
-    GameActor;                  // Inherits GameObject
-    u16 lives;                  // Not used
+    GameActor;                  // Inherits GameActor
+    u16 lives;                  // Lives count (not used just for example)
 } Player;
 
 // Enemy-specific object
 typedef struct
 {
-    GameActor;                  // Inherits GameObject
-    V2ff32 wayPoint;            // Not used
+    GameActor;                  // Inherits GameActor
+    V2ff32 wayPoint;            // Movement waypoint (not used just for example)
 } Enemy;
 
 #include "objects.h"
 
-// Constants
+// Game constants
 #define PLAYER_COUNT            (sizeof(playersData)/sizeof(playersData[0]))
 #define ENEMY_COUNT             (sizeof(enemiesData)/sizeof(enemiesData[0]))
 #define ITEM_COUNT              (sizeof(itemsData)/sizeof(itemsData[0]))
@@ -114,9 +119,10 @@ typedef struct
 #define STAT_LINES              20
 #define TEXT_BUFFER             40
 
+// Stringification macro
 #define STR(x) #x
 
-// Game state
+// Game state variables
 static Player player;
 static Player players[PLAYER_COUNT];
 static Enemy enemies[ENEMY_COUNT];
@@ -124,6 +130,7 @@ static Item items[ITEM_COUNT];
 static u16 selectedObjectIndex = 0;
 TMX_BaseObjectData *objectsList[OBJECTS_COUNT];
 
+// Sprite definition names
 const char sprDefNames[DEF_COUNT][20] = {
     [DEF_SONIC] = STR(DEF_SONIC),
     [DEF_BUZZ] = STR(DEF_BUZZ),
@@ -132,12 +139,12 @@ const char sprDefNames[DEF_COUNT][20] = {
     [DEF_DISPLAY] = STR(DEF_DISPLAY),
 };
 
+// Object type names
 const char objectTypeNames[TYPE_COUNT][20] = {
     [TYPE_PLAYER] = STR(TYPE_PLAYER),
     [TYPE_ENEMY] = STR(TYPE_ENEMY),
     [TYPE_ITEM] = STR(TYPE_ITEM),
 };
-
 
 // Sprite definitions
 const SpriteDefinition *spriteDefs[OBJECTS_COUNT] = {
@@ -150,23 +157,14 @@ const SpriteDefinition *spriteDefs[OBJECTS_COUNT] = {
 
 // Forward declarations
 static void Game_Init();
-
 static void Joy_Handler(u16 joy, u16 changed, u16 state);
-
 static void GameObject_Init(GameObject *obj, const TMX_BaseObjectData *data, const SpriteDefinition *sprDef);
-
 static void GameItem_Init(GameItem *obj, const TMX_ItemData *data, const SpriteDefinition *sprDef);
-
 static void GameActor_Init(GameActor *obj, const TMX_ActorData *data, const SpriteDefinition *sprDef);
-
 static void UI_DrawCursor(const char *symbol1, const char *symbol2);
-
-static u16 UI_DrawObjectData(const TMX_BaseObjectData *object);
-
+static u16 UI_DrawBaseObjectData(const TMX_BaseObjectData *object);
 static void UI_DrawActorData(const TMX_ActorData *actor);
-
 static void UI_DrawItemData(const TMX_ItemData *item);
-
 static void UI_DrawData(const TMX_BaseObjectData *object);
 
 // Entry point
@@ -194,80 +192,96 @@ static void Game_Init()
     // Initialize enemies
     for (u16 i = 0; i < ENEMY_COUNT; i++)
     {
-        GameActor_Init((GameActor *) &enemies[i], enemiesData[i], spriteDefs[enemiesData[i]->sprDefInd]);
-        objectsList[i] = (TMX_BaseObjectData *) &enemies[i];
+        GameActor_Init((GameActor *)&enemies[i], enemiesData[i], spriteDefs[enemiesData[i]->sprDefInd]);
+        // Add enemies to a global object list
+        objectsList[i] = (TMX_BaseObjectData *)&enemies[i];
     }
     
-    // Initialize enemies
+    // Initialize items
     for (u16 i = 0; i < ITEM_COUNT; i++)
     {
-        GameItem_Init((GameItem *) &items[i], itemsData[i], spriteDefs[itemsData[i]->sprDefInd]);
-        objectsList[ENEMY_COUNT + i] = (TMX_BaseObjectData *) &items[i];
+        GameItem_Init((GameItem *)&items[i], itemsData[i], spriteDefs[itemsData[i]->sprDefInd]);
+        // Add items to a global object list
+        objectsList[ENEMY_COUNT + i] = (TMX_BaseObjectData *)&items[i];
     }
     
-    // Initialize player
+    // Initialize players
     for (u16 i = 0; i < PLAYER_COUNT; i++)
     {
-        GameActor_Init((GameActor *) &player, playersData[i], spriteDefs[playersData[i]->sprDefInd]);
-        objectsList[ENEMY_COUNT + ITEM_COUNT + i] = (TMX_BaseObjectData *) &player;
+        GameActor_Init((GameActor *)&player, playersData[i], spriteDefs[playersData[i]->sprDefInd]);
+        // Add players to a global object list
+        objectsList[ENEMY_COUNT + ITEM_COUNT + i] = (TMX_BaseObjectData *)&player;
     }
     
+    // Set Sonic animation to 1
     SPR_setAnim(player.sprite, 1);
-    // Set up input
+    
+    // Set up input handler
     JOY_setEventHandler(Joy_Handler);
     
     // Setup UI
     VDP_setTextPalette(PAL2);
     VDP_drawText("USE DPAD TO SWITCH CHARACTER", 6, 0);
-    UI_DrawData((const TMX_BaseObjectData *) objectsList[selectedObjectIndex]);
+    UI_DrawData((const TMX_BaseObjectData *)objectsList[selectedObjectIndex]);
     UI_DrawCursor(">>", "<<");
 }
 
-// Initialize a game object
+// Initialize a base game object
 static void GameObject_Init(GameObject *obj, const TMX_BaseObjectData *data, const SpriteDefinition *sprDef)
 {
     obj->data = *data;
     
     PAL_setPalette(obj->data.pal, sprDef->palette->data, DMA);
-    obj->sprite = SPR_addSprite(sprDef, F32_toInt(obj->data.x), F32_toInt(obj->data.y),
-        TILE_ATTR(obj->data.pal, TRUE, FALSE, obj->data.flipH));
+    obj->sprite = SPR_addSprite(sprDef,
+                                F32_toInt(obj->data.x),
+                                F32_toInt(obj->data.y),
+                                TILE_ATTR(obj->data.pal, TRUE, FALSE, obj->data.flipH));
 }
 
-// Initialize a game object
+// Initialize a game item object
 static void GameItem_Init(GameItem *obj, const TMX_ItemData *data, const SpriteDefinition *sprDef)
 {
     obj->data = *data;
     
     PAL_setPalette(obj->data.pal, sprDef->palette->data, DMA);
-    obj->sprite = SPR_addSprite(sprDef, F32_toInt(obj->data.x), F32_toInt(obj->data.y),
+    obj->sprite = SPR_addSprite(sprDef,
+                                F32_toInt(obj->data.x),
+                                F32_toInt(obj->data.y),
                                 TILE_ATTR(obj->data.pal, TRUE, FALSE, obj->data.flipH));
 }
 
-// Initialize a game object
+// Initialize a game actor object
 static void GameActor_Init(GameActor *obj, const TMX_ActorData *data, const SpriteDefinition *sprDef)
 {
     obj->data = *data;
     
     PAL_setPalette(obj->data.pal, sprDef->palette->data, DMA);
-    obj->sprite = SPR_addSprite(sprDef, F32_toInt(obj->data.x), F32_toInt(obj->data.y),
+    obj->sprite = SPR_addSprite(sprDef,
+                                F32_toInt(obj->data.x),
+                                F32_toInt(obj->data.y),
                                 TILE_ATTR(obj->data.pal, TRUE, FALSE, obj->data.flipH));
 }
 
-// Handle joypad input
+// Handle joypad input events
 static void Joy_Handler(u16 joy, u16 changed, u16 state)
 {
+    // Clear current cursor
     UI_DrawCursor("  ", "  ");
     
+    // Handle direction input
     if (changed & state & BUTTON_RIGHT)
         selectedObjectIndex = (selectedObjectIndex == OBJECTS_COUNT - 1) ? 0 : selectedObjectIndex + 1;
     else if (changed & state & BUTTON_LEFT)
         selectedObjectIndex = (selectedObjectIndex == 0) ? OBJECTS_COUNT - 1 : selectedObjectIndex - 1;
     
-    UI_DrawData((const TMX_BaseObjectData *) objectsList[selectedObjectIndex]);
+    // Update displayed data
+    UI_DrawData((const TMX_BaseObjectData *)objectsList[selectedObjectIndex]);
     
+    // Draw new cursor
     UI_DrawCursor(">>", "<<");
 }
 
+// Draw an array of strings on screen
 void UI_DrawStringsArray(const char *text, u16 fromY, u16 length)
 {
     VDP_setTextPalette(PAL1);
@@ -278,8 +292,7 @@ void UI_DrawStringsArray(const char *text, u16 fromY, u16 length)
     }
 }
 
-
-// Draw actor statistics
+// Draw base object statistics
 static u16 UI_DrawBaseObjectData(const TMX_BaseObjectData *object)
 {
     static char text[STAT_LINES][TEXT_BUFFER];
@@ -297,34 +310,35 @@ static u16 UI_DrawBaseObjectData(const TMX_BaseObjectData *object)
     sprintf(text[y++], " Prio:     %-5s", object->priority ? "TRUE" : "FALSE");
     sprintf(text[y++], " FlipH:    %-5s", object->flipH ? "TRUE" : "FALSE");
     
-    UI_DrawStringsArray((const char *) text, 0, y);
+    UI_DrawStringsArray((const char *)text, 0, y);
     return y;
 }
 
-
-// Draw actor statistics
+// Draw actor-specific statistics
 static void UI_DrawActorData(const TMX_ActorData *actor)
 {
     static char text[STAT_LINES][TEXT_BUFFER];
-    u16 y = UI_DrawBaseObjectData((const TMX_BaseObjectData *) actor);
+    u16 y = UI_DrawBaseObjectData((const TMX_BaseObjectData *)actor);
     
-    sprintf(text[y++], " Target:   %s(ptr:%p) %-10s", (actor->target != NULL) ? ((TMX_ActorData *) actor->target)->name : "NONE",
+    sprintf(text[y++], " Target:   %s(ptr:%p) %-10s",
+            (actor->target != NULL) ? ((TMX_ActorData *)actor->target)->name : "NONE",
             actor->target, "");
-    sprintf(text[y++], " Speed:    %02d.%d %-25s", F32_toInt(actor->speed), (u16) (mulu(F32_frac(actor->speed), 100) >> FIX32_FRAC_BITS),
-            "");
+    sprintf(text[y++], " Speed:    %02d.%d %-25s",
+            F32_toInt(actor->speed),
+            (u16)(mulu(F32_frac(actor->speed), 100) >> FIX32_FRAC_BITS), "");
     sprintf(text[y++], " HP:       %-29d", actor->hp);
     sprintf(text[y++], " Phrase:   %-70s", actor->phrase);
     y++;
     sprintf(text[y++], " ______________________________________");
     
-    UI_DrawStringsArray((const char *) text, 0, y);
+    UI_DrawStringsArray((const char *)text, 0, y);
 }
 
-// Draw item statistics
+// Draw item-specific statistics
 static void UI_DrawItemData(const TMX_ItemData *item)
 {
     static char text[STAT_LINES][TEXT_BUFFER];
-    u16 y = UI_DrawBaseObjectData((const TMX_BaseObjectData *) item);
+    u16 y = UI_DrawBaseObjectData((const TMX_BaseObjectData *)item);
     
     sprintf(text[y++], " HP:       %-29d", item->hp);
     sprintf(text[y++], " ______________________________________");
@@ -333,32 +347,33 @@ static void UI_DrawItemData(const TMX_ItemData *item)
     sprintf(text[y++], "%-40s", "");
     sprintf(text[y++], "%-40s", "");
     
-    UI_DrawStringsArray((const char *) text, 0, y);
+    UI_DrawStringsArray((const char *)text, 0, y);
 }
 
+// Draw appropriate data based on object type
 static void UI_DrawData(const TMX_BaseObjectData *object)
 {
     switch (object->type)
     {
         case TYPE_PLAYER:
         case TYPE_ENEMY:
-            UI_DrawActorData((const TMX_ActorData *) object);
+            UI_DrawActorData((const TMX_ActorData *)object);
             break;
         
         case TYPE_ITEM:
-            UI_DrawItemData((const TMX_ItemData *) object);
+            UI_DrawItemData((const TMX_ItemData *)object);
             break;
     }
 }
 
-// Draw selection marker
+// Draw selection cursor around selected object
 static void UI_DrawCursor(const char *symbol1, const char *symbol2)
 {
     const TMX_BaseObjectData *object = objectsList[selectedObjectIndex];
     const SpriteDefinition *sprDef = spriteDefs[object->sprDefInd];
     
     s16 x1 = (F32_toInt(object->x) >> 3) - (sprDef->w >> 4);
-    s16 x2 = (F32_toInt(object->x) >> 3) + (sprDef->w>>3) + (sprDef->w >> 4) - 1;
+    s16 x2 = (F32_toInt(object->x) >> 3) + (sprDef->w >> 3) + (sprDef->w >> 4) - 1;
     s16 y = (F32_toInt(object->y) >> 3) + (sprDef->h >> 4);
     
     VDP_setTextPalette(PAL3);
