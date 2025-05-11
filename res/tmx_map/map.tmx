@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="28" tilewidth="8" tileheight="8" infinite="0" nextlayerid="7" nextobjectid="6">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="28" tilewidth="8" tileheight="8" infinite="0" nextlayerid="7" nextobjectid="7">
  <layer id="1" name="Tile Layer 1" width="40" height="28">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -36,7 +36,7 @@
   <object id="1" name="Sonic" type="TiledPlayer" x="160" y="164" width="10" height="10">
    <properties>
     <property name="damage" type="int" value="10"/>
-    <property name="enabled" type="bool" value="false"/>
+    <property name="enabled" type="bool" value="true"/>
     <property name="exportName" type="bool" value="true"/>
     <property name="exportPosition" type="bool" value="true"/>
     <property name="flipH" type="bool" value="false"/>
@@ -50,10 +50,10 @@
     <property name="type" type="int" value="1"/>
    </properties>
   </object>
-  <object id="2" name="Buzz Bomber" type="TiledEnemy" x="46" y="124" width="10" height="10">
+  <object id="2" name="Buzz Bomber" type="TiledEnemy" x="44" y="138" width="10" height="10">
    <properties>
     <property name="damage" type="int" value="10"/>
-    <property name="enabled" type="bool" value="false"/>
+    <property name="enabled" type="bool" value="true"/>
     <property name="exportName" type="bool" value="true"/>
     <property name="exportPosition" type="bool" value="true"/>
     <property name="flipH" type="bool" value="true"/>
@@ -67,10 +67,10 @@
     <property name="type" type="int" value="1"/>
    </properties>
   </object>
-  <object id="3" name="Crabmeat" type="TiledEnemy" x="180" y="42" width="10" height="10">
+  <object id="3" name="Crabmeat" type="TiledEnemy" x="178" y="48" width="10" height="10">
    <properties>
     <property name="damage" type="int" value="10"/>
-    <property name="enabled" type="bool" value="false"/>
+    <property name="enabled" type="bool" value="true"/>
     <property name="exportName" type="bool" value="true"/>
     <property name="exportPosition" type="bool" value="true"/>
     <property name="flipH" type="bool" value="false"/>
@@ -84,10 +84,10 @@
     <property name="type" type="int" value="1"/>
    </properties>
   </object>
-  <object id="4" name="Burrobot" type="TiledEnemy" x="276" y="132" width="10" height="10">
+  <object id="4" name="Burrobot" type="TiledEnemy" x="268" y="64" width="10" height="10">
    <properties>
     <property name="damage" type="int" value="10"/>
-    <property name="enabled" type="bool" value="false"/>
+    <property name="enabled" type="bool" value="true"/>
     <property name="exportName" type="bool" value="true"/>
     <property name="exportPosition" type="bool" value="true"/>
     <property name="flipH" type="bool" value="false"/>
@@ -102,13 +102,20 @@
    </properties>
   </object>
  </objectgroup>
- <objectgroup id="5" name="ObjectLayer"/>
- <objectgroup id="6" name="DecorLayer">
-  <object id="5" name="ImText" type="TMX_Text" x="14" y="8" width="83" height="18">
+ <objectgroup id="5" name="ItemLayer">
+  <object id="6" name="Display" type="TMX_Item" x="258" y="140" width="10" height="10">
    <properties>
+    <property name="enabled" type="bool" value="true"/>
     <property name="exportName" type="bool" value="true"/>
+    <property name="exportPosition" type="bool" value="true"/>
+    <property name="flipH" type="bool" value="false"/>
+    <property name="hp" type="int" value="20"/>
+    <property name="id" type="int" value="2"/>
+    <property name="pal" type="int" value="3"/>
+    <property name="priority" type="bool" value="false"/>
+    <property name="type" type="int" value="1"/>
    </properties>
-   <text wrap="1">Hello World</text>
   </object>
  </objectgroup>
+ <objectgroup id="6" name="DecorLayer"/>
 </map>
