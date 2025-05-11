@@ -1,0 +1,28 @@
+{
+    "automappingRulesFile": "",
+    "commands": [
+    ],
+    "compatibilityVersion": 1100,
+    "extensionsPath": "extensions",
+    "folders": [
+        "."
+    ],
+    "properties": [
+    ],
+    "propertyTypes": [
+        {
+            "id": 1,
+            "name": "spriteDefEnum",
+            "storageType": "int",
+            "type": "enum",
+            "values": [
+                "DEF_SONIC",
+                "DEF_BUZZ",
+                "DEF_CRAB",
+                "DEF_BOT",
+                "DEF_DISPLAY"
+            ],
+            "valuesAsFlags": false
+        }
+    ]
+}
