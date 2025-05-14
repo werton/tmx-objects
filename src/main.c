@@ -97,7 +97,7 @@ typedef struct
         BaseObjectData;             // Anonymous access
     };
     ObjectTypeEnum type;        // Object type index
-    //char *text;
+    char *text;
 } TextData;
 
 // Game item object with sprite and data
@@ -144,7 +144,7 @@ typedef struct
 #define ITEM_COUNT              (sizeof(itemsData)/sizeof(itemsData[0]))
 #define TEXT_COUNT              (sizeof(textData)/sizeof(textData[0]))
 #define OBJECTS_COUNT           (ENEMY_COUNT+ITEM_COUNT+PLAYER_COUNT+TEXT_COUNT)
-#define STAT_LINES              20
+#define STAT_LINES              24
 #define TEXT_BUFFER             40
 
 // Stringification macro
@@ -221,51 +221,46 @@ void Game_Init()
     for (u16 i = 0; i < ENEMY_COUNT; i++)
     {
         enemies[i].actor = *enemiesData[i];
-        Sprite_Init((EntityData *)&enemies[i], &enemies[i].sprite, spriteDefs[enemiesData[i]->sprDefInd]);
-        objectsList[i] = (EntityData *)&enemies[i];
+        Sprite_Init((EntityData *) &enemies[i], &enemies[i].sprite, spriteDefs[enemiesData[i]->sprDefInd]);
+        objectsList[i] = (EntityData *) &enemies[i];
     }
-
-    kprintf("0");
-
+    
     // Initialize items
     for (u16 i = 0; i < ITEM_COUNT; i++)
     {
         items[i].item = *itemsData[i];
-        Sprite_Init((EntityData *)&items[i], &items[i].sprite, spriteDefs[itemsData[i]->sprDefInd]);
-        objectsList[ENEMY_COUNT + i] = (EntityData *)&items[i];
+        Sprite_Init((EntityData *) &items[i], &items[i].sprite, spriteDefs[itemsData[i]->sprDefInd]);
+        objectsList[ENEMY_COUNT + i] = (EntityData *) &items[i];
     }
-//    kprintf("1");
+    
     // Initialize players
     for (u16 i = 0; i < PLAYER_COUNT; i++)
     {
         players[i].actor = *playersData[i];
-//        memcpy(&players[i].actor, &playersData[i], sizeof(ActorData));
-        Sprite_Init((EntityData *)&players[i].entity, &players[i].sprite,  spriteDefs[playersData[i]->sprDefInd]);
-        objectsList[ENEMY_COUNT + ITEM_COUNT + i] = (EntityData *)&players[i];
+        
+        Sprite_Init((EntityData *) &players[i].entity, &players[i].sprite, spriteDefs[playersData[i]->sprDefInd]);
+        objectsList[ENEMY_COUNT + ITEM_COUNT + i] = (EntityData *) &players[i];
     }
-    kprintf("2");
     
     // Initialize text
     for (u16 i = 0; i < TEXT_COUNT; i++)
     {
         texts[i] = *textData[i];
-        objectsList[ENEMY_COUNT + ITEM_COUNT + PLAYER_COUNT + i] = (EntityData *)&texts[i];
+        objectsList[ENEMY_COUNT + ITEM_COUNT + PLAYER_COUNT + i] = (EntityData *) &texts[i];
     }
-    
-    kprintf("text type %d", texts[0].type);
     
     // Set Sonic animation to 1
     SPR_setAnim(players[0].sprite, 1);
-
+    
     // Set up input handler
     JOY_setEventHandler(Joy_Handler);
-
+    
     // Setup UI
     VDP_setTextPalette(PAL2);
     VDP_drawText("USE DPAD TO SWITCH CHARACTER", 6, 0);
-    UI_DrawData((const EntityData *)objectsList[selectedObjectIndex]);
+    UI_DrawData((const EntityData *) objectsList[selectedObjectIndex]);
     UI_DrawCursor(">>", "<<");
-
+    
 }
 
 
@@ -273,9 +268,9 @@ void Sprite_Init(EntityData *entityData, Sprite **sprite, const SpriteDefinition
 {
     PAL_setPalette(entityData->pal, sprDef->palette->data, DMA);
     *sprite = SPR_addSprite(sprDef,
-                                F32_toInt(entityData->x),
-                                F32_toInt(entityData->y),
-                                TILE_ATTR(entityData->pal, entityData->priority, entityData->flipV, entityData->flipH));
+                            F32_toInt(entityData->x),
+                            F32_toInt(entityData->y),
+                            TILE_ATTR(entityData->pal, entityData->priority, entityData->flipV, entityData->flipH));
     if (!entityData->visible)
         SPR_setVisibility(*sprite, HIDDEN);
 }
@@ -309,7 +304,7 @@ void UI_DrawStringsArray(const char *text, u16 fromY, u16 length)
     VDP_setTextPalette(PAL1);
     for (u16 i = 0; i < length; i++)
     {
-        VDP_drawTextBG(BG_A, text + (fromY+i) * TEXT_BUFFER, 0, 2 + fromY + i);
+        VDP_drawTextBG(BG_A, text + (fromY + i) * TEXT_BUFFER, 0, 2 + fromY + i);
     }
 }
 
@@ -325,7 +320,7 @@ u16 UI_DrawBaseObjectData(const BaseObjectData *object)
     sprintf(text[y++], " Pos:      X:%03ld, Y:%03ld", F32_toInt(object->x), F32_toInt(object->y));
     sprintf(text[y++], " Visible:  %-5s", object->visible ? "TRUE" : "FALSE");
     
-    UI_DrawStringsArray((const char *)text, 0, y);
+    UI_DrawStringsArray((const char *) text, 0, y);
     return y;
 }
 
@@ -333,7 +328,7 @@ u16 UI_DrawBaseObjectData(const BaseObjectData *object)
 u16 UI_DrawEntityData(const EntityData *entity)
 {
     char text[STAT_LINES][TEXT_BUFFER];
-    u16 start = UI_DrawBaseObjectData((const BaseObjectData *)entity);
+    u16 start = UI_DrawBaseObjectData((const BaseObjectData *) entity);
     u16 y = start;
     
     sprintf(text[y++], " Type:     %-15s", objectTypeNames[entity->type]);
@@ -343,8 +338,8 @@ u16 UI_DrawEntityData(const EntityData *entity)
     sprintf(text[y++], " Prio:     %-5s", entity->priority ? "TRUE" : "FALSE");
     sprintf(text[y++], " FlipH:    %-5s", entity->flipH ? "TRUE" : "FALSE");
     sprintf(text[y++], " FlipV:    %-5s", entity->flipV ? "TRUE" : "FALSE");
-
-    UI_DrawStringsArray((const char *)text, start, y-start);
+    
+    UI_DrawStringsArray((const char *) text, start, y - start);
     return y;
 }
 
@@ -352,28 +347,28 @@ u16 UI_DrawEntityData(const EntityData *entity)
 void UI_DrawActorData(const ActorData *body)
 {
     char text[STAT_LINES][TEXT_BUFFER];
-    u16 start = UI_DrawEntityData((const EntityData *)body);
+    u16 start = UI_DrawEntityData((const EntityData *) body);
     u16 y = start;
     
     sprintf(text[y++], " Target:   %s(ptr:%p) %-10s",
-            (body->target != NULL) ? ((ActorData *)body->target)->name : "NONE",
+            (body->target != NULL) ? ((ActorData *) body->target)->name : "NONE",
             body->target, "");
     sprintf(text[y++], " Speed:    %02ld.%d %-25s",
             F32_toInt(body->speed),
-            (u16)(mulu(F32_frac(body->speed), 100) >> FIX32_FRAC_BITS), "");
+            (u16) (mulu(F32_frac(body->speed), 100) >> FIX32_FRAC_BITS), "");
     sprintf(text[y++], " HP:       %-29d", body->hp);
     sprintf(text[y++], " Phrase:   %-70s", body->phrase);
     y++;
     sprintf(text[y++], " ______________________________________");
-
-    UI_DrawStringsArray((const char *)text, start, y-start);
+    
+    UI_DrawStringsArray((const char *) text, start, y - start);
 }
 
 // Draw item-specific statistics
 void UI_DrawItemData(const ItemData *item)
 {
     char text[STAT_LINES][TEXT_BUFFER];
-    u16 start = UI_DrawEntityData((const EntityData *)item);
+    u16 start = UI_DrawEntityData((const EntityData *) item);
     u16 y = start;
     
     sprintf(text[y++], " HP:       %-29d", item->hp);
@@ -383,18 +378,22 @@ void UI_DrawItemData(const ItemData *item)
     sprintf(text[y++], "%-40s", "");
     sprintf(text[y++], "%-40s", "");
     
-    UI_DrawStringsArray((const char *)text, start, y-start);
+    UI_DrawStringsArray((const char *) text, start, y - start);
 }
 
 // Draw item-specific statistics
 void UI_DrawTextData(const TextData *text)
 {
     char str[STAT_LINES][TEXT_BUFFER];
-    u16 start = UI_DrawBaseObjectData((const BaseObjectData *)text);
+    u16 start = UI_DrawBaseObjectData((const BaseObjectData *) text);
     u16 y = start;
-
+    
     sprintf(str[y++], " Type:     %-15s", objectTypeNames[text->type]);
-//    sprintf(str[y++], " text:   %-70s", text->text);
+    sprintf(str[y++], " text:   %-70s", text->text);
+    y++;
+    y++;
+    y++;
+    y++;
     sprintf(str[y++], " ______________________________________");
     sprintf(str[y++], "%-40s", "");
     sprintf(str[y++], "%-40s", "");
@@ -403,12 +402,9 @@ void UI_DrawTextData(const TextData *text)
     sprintf(str[y++], "%-40s", "");
     sprintf(str[y++], "%-40s", "");
     sprintf(str[y++], "%-40s", "");
-    sprintf(str[y++], "%-40s", "");
-    sprintf(str[y++], "%-40s", "");
-    sprintf(str[y++], "%-40s", "");
-    sprintf(str[y++], "%-40s", "");
-
-    UI_DrawStringsArray((const char *)str, start, y-start);
+    
+    
+    UI_DrawStringsArray((const char *) str, start, y - start);
 }
 
 // Draw appropriate data based on an object type
@@ -420,15 +416,15 @@ void UI_DrawData(const EntityData *object)
     {
         case TYPE_PLAYER:
         case TYPE_ENEMY:
-            UI_DrawActorData((const ActorData *)object);
+            UI_DrawActorData((const ActorData *) object);
             break;
         
         case TYPE_ITEM:
-            UI_DrawItemData((const ItemData *)object);
+            UI_DrawItemData((const ItemData *) object);
             break;
         
         case TYPE_TEXT:
-            UI_DrawTextData((const TextData *)object);
+            UI_DrawTextData((const TextData *) object);
             break;
     }
 }

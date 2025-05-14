@@ -5,11 +5,11 @@
     ],
     "fileStates": {
         "objects_map.tmx": {
-            "scale": 3.1498437499999996,
+            "scale": 3,
             "selectedLayer": 3,
             "viewCenter": {
-                "x": 172.3895034475917,
-                "y": 121.11711890470758
+                "x": 152.33333333333331,
+                "y": 112.5
             }
         }
     },
@@ -17,7 +17,7 @@
         "objects_map.tmx"
     ],
     "project": "stg_1.tiled-project",
-    "property.type": "int",
+    "property.type": "object",
     "recentFiles": [
         "objects_map.tmx"
     ]

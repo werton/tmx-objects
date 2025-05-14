@@ -166,20 +166,22 @@
     <property name="pal" type="int" value="3"/>
     <property name="priority" type="bool" value="false"/>
     <property name="sprDefInd" type="int" propertytype="SpriteDefEnum" value="4"/>
+    <property name="textPtr" type="object" value="20"/>
     <property name="type" type="int" propertytype="ObjectTypeEnum" value="2"/>
    </properties>
   </object>
  </objectgroup>
  <objectgroup id="6" name="DecorLayer">
-  <object id="20" name="TextTable" type="TMX_Text" x="52" y="12" width="92" height="50">
+  <object id="20" name="TextTable" type="TMX_Text" x="8" y="-28" width="122" height="34">
    <properties>
     <property name="exportId" type="bool" value="true"/>
     <property name="exportName" type="bool" value="true"/>
     <property name="exportPosition" type="bool" value="true"/>
+    <property name="exportText" type="bool" value="false"/>
     <property name="exportVisible" type="bool" value="true"/>
     <property name="type" type="int" propertytype="ObjectTypeEnum" value="3"/>
    </properties>
-   <text wrap="1">Hello World</text>
+   <text fontfamily="Segoe UI" pixelsize="6" wrap="1" color="#ffff7f">Sonic the Hedgehog is a video game series and media franchise created by the Japanese developers Yuji Naka, Naoto Ohshima, and Hirokazu Yasuhara for Sega.</text>
   </object>
  </objectgroup>
 </map>
