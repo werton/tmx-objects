@@ -49,6 +49,7 @@ typedef struct
     bool flipV;                 // Horizontal flip flag
     bool priority;              // priority flag
     bool enabled;               // state flag (not used just for example)
+    bool visible;               //
 } TMX_BaseObjectData;
 
 // Extended object data for items
@@ -247,6 +248,9 @@ static void GameItem_Init(GameItem *obj, const TMX_ItemData *data, const SpriteD
                                 F32_toInt(obj->data.x),
                                 F32_toInt(obj->data.y),
                                 TILE_ATTR(obj->data.pal, obj->data.priority, obj->data.flipV, obj->data.flipH));
+    kprintf("visible: %d",obj->data.visible);
+    if (!obj->data.visible)
+        SPR_setVisibility(obj->sprite, HIDDEN);
 }
 
 // Initialize a game actor object
@@ -259,6 +263,9 @@ static void GameActor_Init(GameActor *obj, const TMX_ActorData *data, const Spri
                                 F32_toInt(obj->data.x),
                                 F32_toInt(obj->data.y),
                                 TILE_ATTR(obj->data.pal, obj->data.priority, obj->data.flipV, obj->data.flipH));
+    kprintf("visible: %d",obj->data.visible);
+    if (!obj->data.visible)
+        SPR_setVisibility(obj->sprite, HIDDEN);
 }
 
 // Handle joypad input events
