@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="28" tilewidth="8" tileheight="8" infinite="0" nextlayerid="7" nextobjectid="14">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="28" tilewidth="8" tileheight="8" infinite="0" nextlayerid="7" nextobjectid="21">
  <layer id="1" name="Tile Layer 1" width="40" height="28">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -48,9 +48,9 @@
     <property name="phrase" value="I am the fastest hedgehog in the world!"/>
     <property name="priority" type="bool" value="true"/>
     <property name="speed" type="float" value="1.5"/>
-    <property name="sprDefInd" type="int" value="0"/>
+    <property name="sprDefInd" type="int" propertytype="SpriteDefEnum" value="0"/>
     <property name="target" type="object" value="0"/>
-    <property name="type" type="int" value="0"/>
+    <property name="type" type="int" propertytype="ObjectTypeEnum" value="0"/>
    </properties>
   </object>
   <object id="2" name="Buzz Bomber" type="TiledEnemy" x="28" y="148" width="48" height="32">
@@ -66,11 +66,11 @@
     <property name="hp" type="int" value="30"/>
     <property name="pal" type="int" value="1"/>
     <property name="phrase" value="I'm just like a Buzz Lightyear, only better"/>
-    <property name="priority" type="bool" value="false"/>
+    <property name="priority" type="bool" value="true"/>
     <property name="speed" type="float" value="10.51"/>
-    <property name="sprDefInd" type="int" value="1"/>
+    <property name="sprDefInd" type="int" propertytype="SpriteDefEnum" value="1"/>
     <property name="target" type="object" value="8"/>
-    <property name="type" type="int" value="1"/>
+    <property name="type" type="int" propertytype="ObjectTypeEnum" value="1"/>
    </properties>
   </object>
   <object id="3" name="Crabmeat" type="TiledEnemy" x="236" y="16" width="48" height="32">
@@ -88,9 +88,9 @@
     <property name="phrase" value="SpooongeBooooob!!!"/>
     <property name="priority" type="bool" value="true"/>
     <property name="speed" type="float" value="43.46"/>
-    <property name="sprDefInd" type="int" value="2"/>
+    <property name="sprDefInd" type="int" propertytype="SpriteDefEnum" value="2"/>
     <property name="target" type="object" value="4"/>
-    <property name="type" type="int" value="1"/>
+    <property name="type" type="int" propertytype="ObjectTypeEnum" value="1"/>
    </properties>
   </object>
   <object id="4" name="Burrobot" type="TiledEnemy" x="270" y="144" width="32" height="40">
@@ -106,11 +106,11 @@
     <property name="hp" type="int" value="60"/>
     <property name="pal" type="int" value="3"/>
     <property name="phrase" value="Blast-Processing is so much faster than Sonic that no one can see it!"/>
-    <property name="priority" type="bool" value="false"/>
+    <property name="priority" type="bool" value="true"/>
     <property name="speed" type="float" value="23.12"/>
-    <property name="sprDefInd" type="int" value="3"/>
+    <property name="sprDefInd" type="int" propertytype="SpriteDefEnum" value="3"/>
     <property name="target" type="object" value="2"/>
-    <property name="type" type="int" value="1"/>
+    <property name="type" type="int" propertytype="ObjectTypeEnum" value="1"/>
    </properties>
   </object>
   <object id="8" name="Crabmeat" type="TiledEnemy" x="236" y="54" width="48" height="32">
@@ -128,9 +128,9 @@
     <property name="phrase" value="Paaaatrick!!!"/>
     <property name="priority" type="bool" value="true"/>
     <property name="speed" type="float" value="43.46"/>
-    <property name="sprDefInd" type="int" value="2"/>
+    <property name="sprDefInd" type="int" propertytype="SpriteDefEnum" value="2"/>
     <property name="target" type="object" value="4"/>
-    <property name="type" type="int" value="1"/>
+    <property name="type" type="int" propertytype="ObjectTypeEnum" value="1"/>
    </properties>
   </object>
  </objectgroup>
@@ -147,12 +147,13 @@
     <property name="hp" type="int" value="20"/>
     <property name="pal" type="int" value="3"/>
     <property name="priority" type="bool" value="false"/>
-    <property name="sprDefInd" type="int" value="4"/>
-    <property name="type" type="int" value="2"/>
+    <property name="sprDefInd" type="int" propertytype="SpriteDefEnum" value="4"/>
+    <property name="type" type="int" propertytype="ObjectTypeEnum" value="2"/>
    </properties>
   </object>
   <object id="7" name="Display" type="TMX_Item" x="188" y="192" width="32" height="32">
    <properties>
+    <property name="asd" type="int" propertytype="ObjectTypeEnum" value="0"/>
     <property name="enabled" type="bool" value="true"/>
     <property name="exportId" type="bool" value="true"/>
     <property name="exportName" type="bool" value="true"/>
@@ -161,12 +162,24 @@
     <property name="flipH" type="bool" value="true"/>
     <property name="flipV" type="bool" value="false"/>
     <property name="hp" type="int" value="20"/>
+    <property name="id" type="int" value="100"/>
     <property name="pal" type="int" value="3"/>
     <property name="priority" type="bool" value="false"/>
-    <property name="sprDefInd" type="int" value="4"/>
-    <property name="type" type="int" value="2"/>
+    <property name="sprDefInd" type="int" propertytype="SpriteDefEnum" value="4"/>
+    <property name="type" type="int" propertytype="ObjectTypeEnum" value="2"/>
    </properties>
   </object>
  </objectgroup>
- <objectgroup id="6" name="DecorLayer"/>
+ <objectgroup id="6" name="DecorLayer">
+  <object id="20" name="TextTable" type="TMX_Text" x="52" y="12" width="92" height="50">
+   <properties>
+    <property name="exportId" type="bool" value="true"/>
+    <property name="exportName" type="bool" value="true"/>
+    <property name="exportPosition" type="bool" value="true"/>
+    <property name="exportVisible" type="bool" value="true"/>
+    <property name="type" type="int" propertytype="ObjectTypeEnum" value="3"/>
+   </properties>
+   <text wrap="1">Hello World</text>
+  </object>
+ </objectgroup>
 </map>

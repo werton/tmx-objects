@@ -12,13 +12,14 @@
     "propertyTypes": [
         {
             "id": 2,
-            "name": "ObjectType",
+            "name": "ObjectTypeEnum",
             "storageType": "int",
             "type": "enum",
             "values": [
                 "TYPE_PLAYER",
                 "TYPE_ENEMY",
                 "TYPE_ITEM",
+                "TYPE_TEXT",
                 "TYPE_COUNT"
             ],
             "valuesAsFlags": false
