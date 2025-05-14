@@ -39,9 +39,11 @@ typedef enum
 // Base object data properties
 typedef struct
 {
+    u16 id;                     // id
     char *name;                 // Display name
     f32 x;                      // X position (fixed point)
     f32 y;                      // Y position (fixed point)
+    
     ObjectType type;            // Object type index
     SpriteDefEnum sprDefInd;    // Sprite definition index
     u8 pal;                     // Palette index
@@ -303,6 +305,7 @@ static u16 UI_DrawBaseObjectData(const TMX_BaseObjectData *object)
     
     sprintf(text[y++], " _______ TMX DATA _______");
     sprintf(text[y++], " Name:     %-11s", object->name);
+    sprintf(text[y++], " Id:       %-15u", object->id);
     sprintf(text[y++], " Type:     %-15s", objectTypeNames[object->type]);
     sprintf(text[y++], " Enabled:  %-5s", object->enabled ? "TRUE" : "FALSE");
     sprintf(text[y++], " Pos:      X:%03ld, Y:%03ld", F32_toInt(object->x), F32_toInt(object->y));
